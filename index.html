@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Zikr Pi | المسبحة الرقمية</title>
+    
+    <script src="https://sdk.minepi.com/pi-sdk.js"></script>
+    <script>Pi.init({ version: "2.0" });</script>
+
+    <style>
+        :root {
+            --neon-blue: #00d2ff;
+            --pi-purple: #6b21a8;
+            --cyber-dark: #020617;
+            --glass: rgba(30, 41, 59, 0.7);
+            --success: #10b981;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: radial-gradient(circle at center, #1e1b4b 0%, #020617 100%);
+            color: #f1f5f9;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            max-width: 450px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .app-title {
+            font-size: 2.2rem;
+            font-weight: 800;
+            background: linear-gradient(to right, var(--neon-blue), #9d50bb);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 5px;
+            letter-spacing: 2px;
+        }
+
+        .dua-card {
+            background: var(--glass);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 30px;
+            padding: 25px;
+            margin: 20px 0;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+
+        .dua-card:active { transform: scale(0.98); }
+
+        .header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .category-badge {
+            background: var(--pi-purple);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .voice-btn {
+            background: rgba(0, 210, 255, 0.1);
+            border: 1px solid var(--neon-blue);
+            color: var(--neon-blue);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .ar-text {
+            font-size: 1.6rem;
+            line-height: 1.6;
+            margin: 20px 0;
+            min-height: 90px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .counter-display {
+            width: 100px;
+            height: 100px;
+            line-height: 100px;
+            border-radius: 50%;
+            border: 5px solid var(--neon-blue);
+            margin: 15px auto;
+            font-size: 40px;
+            font-weight: bold;
+            color: var(--neon-blue);
+            transition: all 0.3s ease;
+        }
+
+        .goal-text {
+            color: #64748b;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .btn-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        button.main-btn {
+            grid-column: span 2;
+            background: linear-gradient(45deg, var(--pi-purple), #9d50bb);
+            color: white;
+            padding: 16px;
+            border: none;
+            border-radius: 15px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+
+        button.sec-btn {
+            background: rgba(255, 255, 255, 0.05);
+            color: #cbd5e1;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 12px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+
+        .footer-note {
+            margin-top: 30px;
+            font-size: 11px;
+            color: #475569;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="app-title">ZIKR PI</div>
+    
+    <div class="dua-card" onclick="increment()">
+        <div class="header-row">
+            <span class="category-badge" id="cat">تحميل...</span>
+            <button class="voice-btn" onclick="speak(event)">🔊</button>
+        </div>
+        
+        <div class="ar-text" id="dua">جارِ تحميل الأذكار...</div>
+        
+        <div class="counter-display" id="num">0</div>
+        <div class="goal-text" id="goal">الهدف: 0</div>
+    </div>
+
+    <div class="btn-group">
+        <button class="main-btn" onclick="next()">🔄 الذكر التالي</button>
+        <button class="sec-btn" onclick="showAds()">🤍 دعم التطبيق</button>
+        <button class="sec-btn" onclick="openPrivacy()">📄 الخصوصية</button>
+    </div>
+
+    <div class="footer-note">
+        يرجى التأكد من استخدام متصفح Pi الرسمي عبر رابط HTTPS
+    </div>
+</div>
+
+<script>
+    // قاعدة بيانات الأذكار
+    const azkarData = [
+        { c: "الصباح", t: "أَصْبَحْنَا وَأَصْبَحَ الْمُلْكُ لِلَّهِ وَالْحَمْدُ لِلَّهِ", g: 1 },
+        { c: "تسبيح", t: "سُبْحَانَ اللَّهِ وَبِحَمْدِهِ", g: 33 },
+        { c: "تحميد", t: "الْحَمْدُ لِلَّهِ حَمْدًا كَثِيرًا", g: 33 },
+        { c: "استغفار", t: "أَسْتَغْفِرُ اللَّهَ وَأَتُوبُ إِلَيْهِ", g: 70 },
+        { c: "الصلاة على النبي", t: "اللَّهُمَّ صَلِّ وَسَلِّمْ عَلَى نَبِيِّنَا مُحَمَّدٍ", g: 10 }
+    ];
+
+    let currentIdx = 0;
+    let count = 0;
+    let isFinished = false;
+
+    // تحديث الشاشة
+    function updateUI() {
+        const item = azkarData[currentIdx];
+        document.getElementById('cat').innerText = item.c;
+        document.getElementById('dua').innerText = item.t;
+        document.getElementById('num').innerText = count;
+        document.getElementById('goal').innerText = `الهدف: ${item.g}`;
+        
+        // إعادة تعيين الألوان
+        document.getElementById('num').style.borderColor = "var(--neon-blue)";
+        document.getElementById('num').style.color = "var(--neon-blue)";
+        isFinished = false;
+    }
+
+    // زيادة العداد
+    function increment() {
+        const item = azkarData[currentIdx];
+        if (count < item.g) {
+            count++;
+            document.getElementById('num').innerText = count;
+            
+            // اهتزاز الهاتف
+            if (navigator.vibrate) navigator.vibrate(50);
+
+            if (count === item.g) {
+                document.getElementById('num').style.borderColor = "var(--success)";
+                document.getElementById('num').style.color = "var(--success)";
+                if (!isFinished) {
+                    isFinished = true;
+                    setTimeout(showAds, 500); // عرض إعلان عند الإكمال
+                }
+            }
+        }
+    }
+
+    // الانتقال للذكر التالي
+    function next() {
+        currentIdx = (currentIdx + 1) % azkarData.length;
+        count = 0;
+        updateUI();
+    }
+
+    // القراءة الصوتية
+    function speak(e) {
+        e.stopPropagation(); // منع زيادة العداد عند الضغط على الزر
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.cancel();
+            const msg = new SpeechSynthesisUtterance(azkarData[currentIdx].t);
+            msg.lang = 'ar-SA';
+            msg.rate = 0.9;
+            window.speechSynthesis.speak(msg);
+        }
+    }
+
+    // عرض الإعلانات
+    async function showAds() {
+        try {
+            await Pi.Ads.showInterstitialAd();
+        } catch (err) {
+            console.log("الإعلانات تعمل فقط داخل متصفح Pi");
+        }
+    }
+
+    // فتح سياسة الخصوصية
+    function openPrivacy() {
+        window.open("https://docs.google.com/document/d/1R1Kq15s01SwlyJpV3D7bqL67rlh7aEpw_8EjbzHsDsM/edit?usp=sharing", '_blank');
+    }
+
+    // بدء التطبيق
+    window.onload = updateUI;
+</script>
+
+</body>
+</html>
